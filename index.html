@@ -3,106 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pattern Game</title>
+<title>Pattern Memory Game</title>
 <style>
   body {
     margin: 0;
     font-family: sans-serif;
     background-color: black;
+    color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    overflow: hidden;
-    color: white;
   }
-
+  h1 { margin: 10px 0; }
   #gameArea {
     display: grid;
-    grid-template-columns: repeat(3, 100px);
-    grid-gap: 10px;
+    grid-template-columns: repeat(6, 60px);
+    grid-gap: 8px;
     margin-top: 20px;
   }
-
   .tile {
-    width: 100px;
-    height: 100px;
+    width: 60px;
+    height: 60px;
     background-color: #222;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 6px;
     cursor: pointer;
     transition: 0.2s;
-    font-size: 24px;
-    user-select: none;
   }
-
-  .tile.active {
-    background-color: limegreen;
-  }
-
-  #score {
-    font-size: 24px;
-    margin-top: 20px;
-  }
-
-  button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-  }
+  .tile.flash { background-color: limegreen !important; }
+  .tile.wrong { background-color: red !important; }
+  #score { font-size: 22px; margin-top: 20px; }
+  button { margin-top: 20px; padding: 8px 16px; font-size: 16px; border-radius: 6px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<h1>Pattern Game</h1>
+<h1>Pattern Memory Game 6x6</h1>
 <div id="gameArea"></div>
 <div id="score">Score: 0</div>
-<button onclick="startGame()">Start Game</button>
+<button id="startBtn">Start Game</button>
 
 <script>
 const gameArea = document.getElementById('gameArea');
 const scoreEl = document.getElementById('score');
+const startBtn = document.getElementById('startBtn');
+
+let tiles = [];
+let sequence = [];
+let userSequence = [];
 let score = 0;
-let activeTile = null;
+let round = 1;
+let clickable = false;
+let timer;
 
-// Create 3x3 grid
-for (let i = 0; i < 9; i++) {
-  const tile = document.createElement('div');
-  tile.classList.add('tile');
-  tile.addEventListener('click', () => {
-    if(tile === activeTile){
-      score++;
-      scoreEl.textContent = "Score: " + score;
-      activateRandomTile();
-    } else {
-      score = 0;
-      scoreEl.textContent = "Score: " + score;
-    }
+function createGrid() {
+  for (let i = 0; i < 36; i++) {
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    tile.dataset.index = i;
+    tile.addEventListener('click', () => handleClick(tile));
+    gameArea.appendChild(tile);
+    tiles.push(tile);
+  }
+}
+
+function flashTile(tile) {
+  return new Promise(resolve => {
+    tile.classList.add('flash');
+    setTimeout(() => { tile.classList.remove('flash'); resolve(); }, 600);
   });
-  gameArea.appendChild(tile);
 }
 
-// Activate a random tile
-function activateRandomTile() {
-  if(activeTile) activeTile.classList.remove('active');
-  const tiles = document.querySelectorAll('.tile');
-  const index = Math.floor(Math.random() * tiles.length);
-  activeTile = tiles[index];
-  activeTile.classList.add('active');
+async function showSequence() {
+  clickable = false;
+  for (const index of sequence) {
+    await flashTile(tiles[index]);
+    await new Promise(r => setTimeout(r, 200));
+  }
+  clickable = true;
+  startTimer();
 }
 
-// Start game
-function startGame() {
+function nextRound() {
+  userSequence = [];
+  sequence.push(Math.floor(Math.random() * 36));
+  showSequence();
+}
+
+function handleClick(tile) {
+  if(!clickable) return;
+  clearTimeout(timer);
+  userSequence.push(Number(tile.dataset.index));
+
+  const correctIndex = userSequence.length - 1;
+  if(userSequence[correctIndex] !== sequence[correctIndex]) {
+    // Wrong click
+    tile.classList.add('wrong');
+    setTimeout(() => tile.classList.remove('wrong'), 400);
+    score = 0;
+    scoreEl.textContent = "Score: " + score;
+    sequence = [];
+    round = 1;
+    clickable = false;
+    alert("Wrong tile! Restarting...");
+    return;
+  }
+
+  // Correct so far
+  if(userSequence.length === sequence.length) {
+    score++;
+    scoreEl.textContent = "Score: " + score;
+    round++;
+    clickable = false;
+    setTimeout(nextRound, 600);
+  } else {
+    startTimer(); // reset timer for next tile
+  }
+}
+
+function startTimer() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    clickable = false;
+    alert("Too slow! Sequence reset");
+    score = 0;
+    scoreEl.textContent = "Score: " + score;
+    sequence = [];
+    round = 1;
+  }, 3000); // 3 seconds per tile
+}
+
+startBtn.addEventListener('click', () => {
   score = 0;
-  scoreEl.textContent = "Score: 0";
-  activateRandomTile();
-}
+  round = 1;
+  scoreEl.textContent = "Score: " + score;
+  sequence = [];
+  nextRound();
+  startBtn.disabled = true;
+});
+
+createGrid();
 </script>
 
 </body>

@@ -5,41 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pattern Memory Game</title>
 <style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    background-color: black;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  h1 { margin: 10px 0; }
-  #gameArea {
-    display: grid;
-    grid-template-columns: repeat(6, 60px);
-    grid-gap: 8px;
-    margin-top: 20px;
-  }
-  .tile {
-    width: 60px;
-    height: 60px;
-    background-color: #222;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .tile.flash { background-color: limegreen !important; }
-  .tile.wrong { background-color: red !important; }
-  #score { font-size: 22px; margin-top: 20px; }
-  button { margin-top: 20px; padding: 8px 16px; font-size: 16px; border-radius: 6px; cursor: pointer; }
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+h1 { margin: 10px 0; font-size: 20px; text-align: center; }
+#gameArea {
+  display: grid;
+  grid-template-columns: repeat(6, 40px);
+  grid-gap: 4px;
+  margin-top: 20px;
+}
+.tile {
+  width: 40px;
+  height: 40px;
+  background-color: #222;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.tile.flash { background-color: limegreen !important; }
+.tile.wrong { background-color: red !important; }
+#score { font-size: 18px; margin-top: 10px; }
+button { margin-top: 10px; padding: 6px 12px; font-size: 14px; border-radius: 4px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<h1>Pattern Memory Game 6x6</h1>
+<h1>Pattern Memory Game 6×6</h1>
 <div id="gameArea"></div>
 <div id="score">Score: 0</div>
 <button id="startBtn">Start Game</button>
@@ -71,7 +71,7 @@ function createGrid() {
 function flashTile(tile) {
   return new Promise(resolve => {
     tile.classList.add('flash');
-    setTimeout(() => { tile.classList.remove('flash'); resolve(); }, 600);
+    setTimeout(() => { tile.classList.remove('flash'); resolve(); }, 400);
   });
 }
 
@@ -98,7 +98,6 @@ function handleClick(tile) {
 
   const correctIndex = userSequence.length - 1;
   if(userSequence[correctIndex] !== sequence[correctIndex]) {
-    // Wrong click
     tile.classList.add('wrong');
     setTimeout(() => tile.classList.remove('wrong'), 400);
     score = 0;
@@ -110,7 +109,6 @@ function handleClick(tile) {
     return;
   }
 
-  // Correct so far
   if(userSequence.length === sequence.length) {
     score++;
     scoreEl.textContent = "Score: " + score;
@@ -118,7 +116,7 @@ function handleClick(tile) {
     clickable = false;
     setTimeout(nextRound, 600);
   } else {
-    startTimer(); // reset timer for next tile
+    startTimer();
   }
 }
 

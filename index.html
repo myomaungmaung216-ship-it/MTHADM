@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pattern Memory Game</title>
+<title>Bot Tile Game 6x6</title>
 <style>
 body {
   margin: 0;
@@ -16,30 +16,30 @@ body {
   justify-content: center;
   height: 100vh;
 }
-h1 { margin: 10px 0; font-size: 20px; text-align: center; }
+h1 { margin: 10px 0; font-size: 24px; text-align: center; }
 #gameArea {
   display: grid;
-  grid-template-columns: repeat(6, 40px);
-  grid-gap: 4px;
+  grid-template-columns: repeat(6, 60px);
+  grid-gap: 8px;
   margin-top: 20px;
 }
 .tile {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   background-color: #222;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: 0.2s;
 }
-.tile.flash { background-color: limegreen !important; }
-.tile.wrong { background-color: red !important; }
-#score { font-size: 18px; margin-top: 10px; }
-button { margin-top: 10px; padding: 6px 12px; font-size: 14px; border-radius: 4px; cursor: pointer; }
+.tile.active { background-color: limegreen; }
+.tile.wrong { background-color: red; }
+#score { font-size: 22px; margin-top: 20px; }
+button { margin-top: 20px; padding: 8px 16px; font-size: 16px; border-radius: 6px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<h1>Pattern Memory Game 6×6</h1>
+<h1>Bot Tile Game 6x6</h1>
 <div id="gameArea"></div>
 <div id="score">Score: 0</div>
 <button id="startBtn">Start Game</button>
@@ -50,6 +50,40 @@ const scoreEl = document.getElementById('score');
 const startBtn = document.getElementById('startBtn');
 
 let tiles = [];
-let sequence = [];
-let userSequence = [];
-let score = 0
+let activeTile = null;
+let score = 0;
+
+function createGrid() {
+  for (let i = 0; i < 36; i++) {
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    tile.dataset.index = i;
+    tile.addEventListener('click', () => handleClick(tile));
+    gameArea.appendChild(tile);
+    tiles.push(tile);
+  }
+}
+
+function botPickTile() {
+  if(activeTile) activeTile.classList.remove('active');
+  const index = Math.floor(Math.random() * tiles.length);
+  activeTile = tiles[index];
+  activeTile.classList.add('active');
+}
+
+function handleClick(tile) {
+  if(tile === activeTile) {
+    score++;
+    scoreEl.textContent = "Score: " + score;
+    botPickTile();
+  } else {
+    tile.classList.add('wrong');
+    setTimeout(()=>tile.classList.remove('wrong'), 400);
+    score = 0;
+    scoreEl.textContent = "Score: " + score;
+    botPickTile();
+  }
+}
+
+startBtn.addEventListener('click', () => {
+  score = 0;

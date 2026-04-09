@@ -1,158 +1,109 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pattern Memory Game</title>
-    <style>
-        body {
-            background-color: #1a1a2e; /* Background Blue */
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Game</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    color: white;
+  }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+  #gameArea {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 10px;
+    margin-top: 20px;
+  }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 70px);
-            grid-gap: 15px;
-            background: #16213e;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
+  .tile {
+    width: 100px;
+    height: 100px;
+    background-color: #222;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 24px;
+    user-select: none;
+  }
 
-        .tile {
-            width: 70px;
-            height: 70px;
-            background-color: #0f3460;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+  .tile.active {
+    background-color: limegreen;
+  }
 
-        .tile.active {
-            background-color: #e94560; /* လင်းတဲ့အရောင် */
-            transform: scale(0.9);
-        }
+  #score {
+    font-size: 24px;
+    margin-top: 20px;
+  }
 
-        .btn {
-            margin-top: 25px;
-            padding: 10px 25px;
-            background: #e94560;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        #message { margin-top: 15px; height: 20px; color: #ff9d00; }
-    </style>
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>Pattern Memory</h2>
-        <p>အဆင့်: <span id="level">1</span></p>
-    </div>
+<h1>Pattern Game</h1>
+<div id="gameArea"></div>
+<div id="score">Score: 0</div>
+<button onclick="startGame()">Start Game</button>
 
-    <div class="grid" id="grid">
-        <!-- အကွက် ၁၆ ကွက် -->
-    </div>
+<script>
+const gameArea = document.getElementById('gameArea');
+const scoreEl = document.getElementById('score');
+let score = 0;
+let activeTile = null;
 
-    <div id="message"></div>
-    <button class="btn" onclick="startGame()">ဂိမ်းစမယ်</button>
+// Create 3x3 grid
+for (let i = 0; i < 9; i++) {
+  const tile = document.createElement('div');
+  tile.classList.add('tile');
+  tile.addEventListener('click', () => {
+    if(tile === activeTile){
+      score++;
+      scoreEl.textContent = "Score: " + score;
+      activateRandomTile();
+    } else {
+      score = 0;
+      scoreEl.textContent = "Score: " + score;
+    }
+  });
+  gameArea.appendChild(tile);
+}
 
-    <script>
-        const grid = document.getElementById('grid');
-        const levelText = document.getElementById('level');
-        const message = document.getElementById('message');
-        
-        let sequence = [];
-        let playerSequence = [];
-        let level = 1;
-        let isWaiting = false;
+// Activate a random tile
+function activateRandomTile() {
+  if(activeTile) activeTile.classList.remove('active');
+  const tiles = document.querySelectorAll('.tile');
+  const index = Math.floor(Math.random() * tiles.length);
+  activeTile = tiles[index];
+  activeTile.classList.add('active');
+}
 
-        // အကွက် ၁၆ ကွက် ဖန်တီးခြင်း
-        for (let i = 0; i < 16; i++) {
-            const tile = document.createElement('div');
-            tile.classList.add('tile');
-            tile.setAttribute('data-id', i);
-            tile.onclick = () => handleTileClick(i);
-            grid.appendChild(tile);
-        }
+// Start game
+function startGame() {
+  score = 0;
+  scoreEl.textContent = "Score: 0";
+  activateRandomTile();
+}
+</script>
 
-        function startGame() {
-            level = 1;
-            sequence = [];
-            nextRound();
-        }
-
-        function nextRound() {
-            playerSequence = [];
-            isWaiting = true;
-            message.innerText = "မှတ်ထားပါ...";
-            levelText.innerText = level;
-            
-            // Random အကွက်အသစ် ထည့်ခြင်း
-            sequence.push(Math.floor(Math.random() * 16));
-            showSequence();
-        }
-
-        function showSequence() {
-            let i = 0;
-            const interval = setInterval(() => {
-                flashTile(sequence[i]);
-                i++;
-                if (i >= sequence.length) {
-                    clearInterval(interval);
-                    isWaiting = false;
-                    message.innerText = "သင့်အလှည့်!";
-                }
-            }, 600);
-        }
-
-        function flashTile(id) {
-            const tile = document.querySelector(`[data-id="${id}"]`);
-            tile.classList.add('active');
-            setTimeout(() => tile.classList.remove('active'), 400);
-        }
-
-        function handleTileClick(id) {
-            if (isWaiting) return;
-
-            flashTile(id);
-            playerSequence.push(id);
-
-            const currentIndex = playerSequence.length - 1;
-            
-            if (playerSequence[currentIndex] !== sequence[currentIndex]) {
-                message.innerText = "မှားသွားပြီ! ပြန်စပါ။";
-                sequence = [];
-                level = 1;
-                return;
-            }
-
-            if (playerSequence.length === sequence.length) {
-                isWaiting = true;
-                message.innerText = "မှန်တယ်!";
-                level++;
-                setTimeout(nextRound, 1000);
-            }
-        }
-    </script>
 </body>
 </html>
-
